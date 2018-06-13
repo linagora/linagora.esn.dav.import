@@ -1,0 +1,8 @@
+button.btn.btn-link.dav-import-button(ng-click= "ctrl.davImportClick()", ng-disabled= "ctrl.davImportDisabled", ng-switch = "ctrl.davImportIconPosition")
+  .dav-import-button-icon-and-text(ng-switch-when= "right")
+    span {{ ctrl.davImportIconText | translate }}
+    i.mdi(ng-class= "ctrl.davImportIconClass")
+
+  .dav-import-button-icon-and-text(ng-switch-default)
+    i.mdi(ng-class= "ctrl.davImportIconClass")
+    span {{ ctrl.davImportIconText | translate }}

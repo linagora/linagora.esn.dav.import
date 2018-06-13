@@ -1,0 +1,69 @@
+{
+  "name": "linagora.esn.dav.import",
+  "version": "0.0.1",
+  "description": "Common stuffs used by Contact and Calendar to import contacts/events from VCF/ICS files to Sabre DAV ",
+  "main": "index.js",
+  "devDependencies": {
+    "@linagora/grunt-i18n-checker": "2.0.5",
+    "@linagora/grunt-lint-pattern": "0.1.4",
+    "@linagora/i18n-checker": "2.0.3",
+    "@linagora/karma-ng-jade2module-preprocessor": "0.5.3",
+    "chai": "3.5.0",
+    "chai-as-promised": "5.3.0",
+    "chai-shallow-deep-equal": "1.4.0",
+    "eslint": "3.6.0",
+    "eslint-config-airbnb-base": "8.0.0",
+    "eslint-config-linagora-esn": "1.0.2",
+    "eslint-plugin-import": "1.16.0",
+    "grunt": "1.0.1",
+    "grunt-contrib-clean": "1.0.0",
+    "grunt-contrib-concat": "1.0.1",
+    "grunt-contrib-jshint": "1.1.0",
+    "grunt-contrib-watch": "1.0.0",
+    "grunt-eslint": "19.0.0",
+    "grunt-karma": "2.0.0",
+    "grunt-mocha-cli": "3.0.0",
+    "grunt-puglint": "1.0.0",
+    "grunt-run": "0.6.0",
+    "karma": "1.7.1",
+    "karma-chrome-launcher": "2.0.0",
+    "karma-coverage": "1.1.1",
+    "karma-firefox-launcher": "1.0.0",
+    "karma-mocha": "1.1.1",
+    "karma-phantomjs-launcher": "1.0.2",
+    "karma-spec-reporter": "0.0.26",
+    "linagora-rse": "linagora/openpaas-esn#master",
+    "mocha": "3.1.2",
+    "mockery": "1.7.0",
+    "mongoose": "4.7.1",
+    "phantomjs-prebuilt": "2.1.12",
+    "rewire": "2.5.2",
+    "sinon": "1.17.5",
+    "sinon-chai": "2.8.0",
+    "socket.io": "1.2.1",
+    "supertest": "2.0.0",
+    "time-grunt": "1.4.0"
+  },
+  "scripts": {
+    "test": "grunt test",
+    "postinstall": "bower install --production --allow-root"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://ci.linagora.com/linagora/lgs/openpaas/linagora.esn.dav.import.git"
+  },
+  "author": "Linagora R&D",
+  "license": "AGPL-3.0",
+  "engines": {
+    "node": ">=8"
+  },
+  "dependencies": {
+    "async": "2.0.1",
+    "awesome-module": "1.1.0",
+    "bower": "1.8.2",
+    "express": "4.14.0",
+    "glob-all": "3.1.0",
+    "lodash": "4.15.0",
+    "q": "1.4.1"
+  }
+}

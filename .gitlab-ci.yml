@@ -1,0 +1,41 @@
+image: linagora/node-test-base:8
+
+stages:
+  - test
+  - deploy_dev
+
+test:
+  stage: test
+  tags:
+    - docker
+  services:
+    - mongo:3.4
+    - elasticsearch:2.4
+    - redis:3
+    - rabbitmq:3.6
+  script:
+    - npm i
+    - bower i --allow-root
+    - grunt --chunk=1 --ci
+
+.deploy_dev:
+  stage: deploy_dev
+  tags:
+    - dev.open-paas.org
+    - deployment
+  environment:
+    name: dev
+    url: https://dev.open-paas.org
+  only:
+    - master
+  script:
+    - cd /srv/${CI_PROJECT_NAME}
+    - git fetch --all
+    - git checkout ${CI_COMMIT_SHA}
+    - npm install --production
+    - npm update --production
+    - npm prune
+    - bower install --production
+    - bower prune
+    - git checkout -- .
+    - sudo /etc/init.d/rse.dev restart
