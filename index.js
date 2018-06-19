@@ -2,7 +2,6 @@
 
 const AwesomeModule = require('awesome-module');
 const Dependency = AwesomeModule.AwesomeModuleDependency;
-const path = require('path');
 const glob = require('glob-all');
 const FRONTEND_JS_PATH = __dirname + '/frontend/app/';
 const AWESOME_MODULE_NAME = 'linagora.esn.dav.import';
@@ -51,12 +50,10 @@ const awesomeModule = new AwesomeModule(AWESOME_MODULE_NAME, {
       const frontendJsFilesUri = frontendJsFilesFullPath.map(function(filepath) {
         return filepath.replace(FRONTEND_JS_PATH, '');
       });
-      const lessFile = path.join(FRONTEND_JS_PATH, 'app.less');
 
       webserverWrapper.injectAngularAppModules(AWESOME_MODULE_NAME, frontendJsFilesUri, AWESOME_MODULE_NAME, ['esn'], {
         localJsFiles: frontendJsFilesFullPath
       });
-      webserverWrapper.injectLess(AWESOME_MODULE_NAME, [lessFile], 'esn');
 
       webserverWrapper.addApp(AWESOME_MODULE_NAME, app);
 
