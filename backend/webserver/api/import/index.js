@@ -5,8 +5,10 @@ module.exports = function(dependencies, lib, router) {
   const controller = require('./controller')(dependencies, lib);
   const middleware = require('./middleware')(dependencies, lib);
 
-  router.get('/example',
+  router.post('/import',
     authorizationMW.requiresAPILogin,
-    middleware.canGet,
-    controller.get);
+    middleware.validateImportRequest,
+    middleware.loadFileMetaData,
+    middleware.validateFileType,
+    controller.importFromFile);
 };
