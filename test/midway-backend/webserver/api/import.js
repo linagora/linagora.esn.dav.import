@@ -4,7 +4,7 @@ const request = require('supertest');
 const expect = require('chai').expect;
 const MODULE_NAME = 'linagora.esn.dav.import';
 
-describe('The /import API', function() {
+describe.skip('The /import API', function() {
   let user, app;
   const password = 'secret';
 
