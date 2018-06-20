@@ -18,6 +18,10 @@ function register(type, handler) {
     throw new Error('handler.importItem function is required');
   }
 
+  if (typeof handler.targetValidator !== 'function') {
+    throw new Error('handler.targetValidator function is required');
+  }
+
   handlers[type] = handler;
 }
 
