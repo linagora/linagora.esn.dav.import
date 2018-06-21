@@ -68,7 +68,10 @@ module.exports = function(dependencies) {
         q.all(promises).then(deferred.resolve, deferred.reject);
       });
 
-      // TODO: handle stream error event
+      stream.on('error', err => {
+        deferred.reject(err);
+      });
+
       // TODO: support notifying progress
     });
 

@@ -141,6 +141,21 @@ describe('The lib/importer/runner/import-request module', function() {
         setTimeout(() => stream.emit('end'), 0);
       });
 
+      it('should reject if error occurs while reading stream', function(done) {
+        importRequestModuleMock.getById = sinon.stub().returns(q(request));
+        filestoreMock.get = sinon.spy((fileId, callback) => {
+          callback(null, file, stream);
+        });
+
+        getModule().run(job).catch(err => {
+          expect(err.message).to.equal('an_error');
+          done();
+        });
+
+        // to give stream some CPU cycles to register events
+        setTimeout(() => stream.emit('error', new Error('an_error')), 0);
+      });
+
       it('should import items found in each chunk', function(done) {
         const chunk1 = 'line1\nline2\nline3';
         const chunk2 = 'line4\nline5';
