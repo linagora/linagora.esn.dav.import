@@ -9,7 +9,8 @@ module.exports = function(dependencies, lib) {
   return {
     loadFileMetaData,
     validateImportRequest,
-    validateFileType
+    validateFileType,
+    validateTarget
   };
 
   function loadFileMetaData(req, res, next) {
@@ -81,5 +82,39 @@ module.exports = function(dependencies, lib) {
     }
 
     next();
+  }
+
+  function validateTarget(req, res, next) {
+    const user = req.user;
+    const { target } = req.body;
+    const handler = lib.importer.getFileHandler(req.fileMetaData.contentType);
+
+    q().then(() => handler.targetValidator(user, target))
+      .then(valid => {
+        if (valid) {
+          next();
+        } else {
+          res.status(400).json({
+            error: {
+              code: 400,
+              message: 'Bad Request',
+              details: 'target is either in wrong format or not writtable'
+            }
+          });
+        }
+      })
+      .catch(err => {
+        const details = 'Error while validating target';
+
+        logger.error(details, err);
+
+        res.status(500).json({
+          error: {
+            code: 500,
+            message: 'Server Error',
+            details
+          }
+        });
+      });
   }
 };

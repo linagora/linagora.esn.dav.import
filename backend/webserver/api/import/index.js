@@ -10,5 +10,6 @@ module.exports = function(dependencies, lib, router) {
     middleware.validateImportRequest,
     middleware.loadFileMetaData,
     middleware.validateFileType,
+    middleware.validateTarget,
     controller.importFromFile);
 };
