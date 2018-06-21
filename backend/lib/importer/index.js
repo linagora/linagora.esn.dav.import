@@ -4,6 +4,7 @@ const handlerModule = require('./handler');
 const { JOB_QUEUE } = require('../constants');
 
 module.exports = function(dependencies) {
+  const logger = dependencies('logger');
   const jobqueue = dependencies('jobqueue').lib;
 
   const importRequestModule = require('../import-request')(dependencies);
@@ -33,7 +34,7 @@ module.exports = function(dependencies) {
   }
 
   function importFromFile({ file, target, user }) {
-    const title = `Import DAV items from file "${file.filename}", id: "${file._id}"`;
+    const title = `Import DAV items from file "${file.filename}" (ID: ${file._id})`;
 
     return importRequestModule.create({
         creator: user.id,
@@ -46,7 +47,13 @@ module.exports = function(dependencies) {
 
   function _registerJob(queue, jobName, jobRunner) {
     queue.process(jobName, (job, done) => {
-      jobRunner(job).then(() => done(), done);
+      jobRunner(job).then(() => {
+        logger.debug(`Job done: ${jobName} - ${job.data.title}`);
+        done();
+      }, err => {
+        logger.error(`Job failed: ${jobName} - ${job.data.title}`, err);
+        done(err);
+      });
     });
   }
 
