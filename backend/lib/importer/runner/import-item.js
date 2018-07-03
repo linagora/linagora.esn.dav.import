@@ -30,7 +30,7 @@ module.exports = function(dependencies) {
 
         return q.denodeify(coreUser.get)(userId)
           .then(createDavToken)
-          .then(token => fileHandler.importItem(rawData, { target, token }))
+          .then(({token, user}) => fileHandler.importItem(rawData, { target, token, user }))
           .then(
             () => importItemModule.updateById(itemId, { status: IMPORT_STATUS.succeed }),
             err => importItemModule.updateById(itemId, { status: IMPORT_STATUS.failed }).then(() => q.reject(err))
@@ -39,6 +39,6 @@ module.exports = function(dependencies) {
   }
 
   function createDavToken(user) {
-    return q.denodeify(coreUser.getNewToken)(user, TOKEN_TTL).then(data => data.token);
+    return q.denodeify(coreUser.getNewToken)(user, TOKEN_TTL).then(data => ({token: data.token, user}));
   }
 };
