@@ -1,5 +1,3 @@
-image: linagora/node-test-base:8
-
 stages:
   - test
   - deploy_dev
@@ -8,6 +6,7 @@ test:
   stage: test
   tags:
     - docker
+  image: docker-registry.linagora.com:5000/public-releases/openpaas-esn-test-helper:1.0.0
   services:
     - mongo:3.4
     - elasticsearch:2.4
