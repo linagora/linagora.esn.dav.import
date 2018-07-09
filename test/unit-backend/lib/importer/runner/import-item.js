@@ -79,15 +79,19 @@ describe('The lib/importer/runner/import-item module', function() {
           contentType: 'text/vcard'
         }
       };
+      const userTest = {
+        _id: '123',
+        preferredEmail: 'test@test.com'
+      };
 
       require(this.moduleHelpers.backendPath + '/lib/importer/handler').register(importItem.request.contentType, handler);
       importItemModuleMock.getById.returns(q(importItem));
       handler.importItem.returns(q());
-      userMock.get = sinon.spy((id, callback) => callback());
-      userMock.getNewToken = sinon.spy((user, ttl, callback) => callback(null, { token: 'token' }));
+      userMock.get = sinon.spy((id, callback) => callback(null, userTest));
+      userMock.getNewToken = sinon.spy((user, ttl, callback) => callback(null, { token: 'token', user: userTest }));
 
       getModule().run(job).then(() => {
-        expect(handler.importItem).to.have.been.calledWith(importItem.rawData, { target: importItem.request.target, token: 'token' });
+        expect(handler.importItem).to.have.been.calledWith(importItem.rawData, { target: importItem.request.target, token: 'token', user: userTest });
         done();
       })
       .catch(err => done(err || 'should resolve'));
