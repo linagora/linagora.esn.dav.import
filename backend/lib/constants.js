@@ -16,5 +16,5 @@ module.exports = {
     DEFAULT_NOREPLY: 'no-reply@openpaas.org',
     DEFAULT_SUBJECT: 'Import reporting'
   },
-  CHECK_TIME: 2000
+  CHECK_TIME: 900000
 };
