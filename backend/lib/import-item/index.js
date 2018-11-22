@@ -1,11 +1,14 @@
 'use strict';
 
+const { IMPORT_STATUS } = require('../constants');
+
 module.exports = function(dependencies) {
   const DavImportItem = dependencies('db').mongo.mongoose.model('DavImportItem');
 
   return {
     create,
     getById,
+    getFinishedJobByBatchId,
     updateById
   };
 
@@ -23,6 +26,10 @@ module.exports = function(dependencies) {
     }
 
     return query.exec();
+  }
+
+  function getFinishedJobByBatchId(batchId) {
+    return DavImportItem.find({batchId: batchId, $or: [{ status: IMPORT_STATUS.succeed }, { status: IMPORT_STATUS.failed}]}).exec();
   }
 
   function updateById(itemId, modified) {

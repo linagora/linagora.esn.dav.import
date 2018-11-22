@@ -5,7 +5,7 @@ const { expect } = require('chai');
 const { Readable } = require('stream');
 
 describe('The lib/importer/runner/import-request module', function() {
-  let importRequestModuleMock, importItemModuleMock, jobqueueMock, filestoreMock;
+  let importRequestModuleMock, importItemModuleMock, emailModuleMock, jobqueueMock, filestoreMock;
   let getModule;
 
   beforeEach(function() {
@@ -21,8 +21,12 @@ describe('The lib/importer/runner/import-request module', function() {
 
     importRequestModuleMock = {};
     importItemModuleMock = {};
+    emailModuleMock = {
+      startWatchEndJob: sinon.stub()
+    };
     mockery.registerMock('../../import-request', () => importRequestModuleMock);
     mockery.registerMock('../../import-item', () => importItemModuleMock);
+    mockery.registerMock('../../email', () => emailModuleMock);
 
     getModule = () => require(this.moduleHelpers.backendPath + '/lib/importer/runner/import-request')(this.moduleHelpers.dependencies);
   });

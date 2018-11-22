@@ -10,6 +10,7 @@ module.exports = function(dependencies) {
   const jobqueue = dependencies('jobqueue').lib;
   const importRequestModule = require('../../import-request')(dependencies);
   const importItemModule = require('../../import-item')(dependencies);
+  const email = require('../../email')(dependencies);
 
   return {
     run
@@ -59,29 +60,34 @@ module.exports = function(dependencies) {
 
         results.items.forEach(item => {
           promises.push(
-            createImportItem(importRequest.id, item).then(submitJob)
+            createImportItem(importRequest.id, item, importRequest.fileId).then(submitJob)
           );
         });
       });
 
       stream.on('end', () => {
-        q.all(promises).then(deferred.resolve, deferred.reject);
+        q.all(promises)
+        .then(responses => {
+          email.startWatchEndJob(importRequest.fileId, responses.length, importRequest.creator, importRequest.contentType);
+
+          return responses;
+        })
+        .then(deferred.resolve, deferred.reject);
       });
 
       stream.on('error', err => {
         deferred.reject(err);
       });
-
-      // TODO: support notifying progress
     });
 
     return deferred.promise;
   }
 
-  function createImportItem(requestId, item) {
+  function createImportItem(requestId, item, batchId) {
     return importItemModule.create({
       request: requestId,
-      rawData: item
+      rawData: item,
+      batchId: batchId
     });
   }
 

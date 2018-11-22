@@ -10,7 +10,8 @@ module.exports = function(dependencies) {
   const schema = new Schema({
     request: { type: ObjectId, ref: 'DavImportRequest', index: true, required: true },
     status: { type: String, enum: Object.values(IMPORT_STATUS), default: IMPORT_STATUS.pending, index: true },
-    rawData: { type: String, required: true }
+    rawData: { type: String, required: true },
+    batchId: { type: ObjectId, required: true }
   }, { timestamps: true });
 
   return mongoose.model('DavImportItem', schema);
