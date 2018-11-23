@@ -5,24 +5,28 @@ module.exports = {
   get
 };
 
-function register(type, handler) {
-  if (get(type)) {
-    throw new Error(`handler for type "${type}" already registered`);
-  }
+function register(types, handler) {
+  types = Array.isArray(types) ? types : [types];
 
-  if (typeof handler.readLines !== 'function') {
-    throw new Error('handler.readLines function is required');
-  }
+  types.forEach(type => {
+    if (get(type)) {
+      throw new Error(`handler for type "${type}" already registered`);
+    }
 
-  if (typeof handler.importItem !== 'function') {
-    throw new Error('handler.importItem function is required');
-  }
+    if (typeof handler.readLines !== 'function') {
+      throw new Error('handler.readLines function is required');
+    }
 
-  if (typeof handler.targetValidator !== 'function') {
-    throw new Error('handler.targetValidator function is required');
-  }
+    if (typeof handler.importItem !== 'function') {
+      throw new Error('handler.importItem function is required');
+    }
 
-  handlers[type] = handler;
+    if (typeof handler.targetValidator !== 'function') {
+      throw new Error('handler.targetValidator function is required');
+    }
+
+    handlers[type] = handler;
+  });
 }
 
 function get(type) {
