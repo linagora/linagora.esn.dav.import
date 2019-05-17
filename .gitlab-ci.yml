@@ -6,7 +6,7 @@ test:
   stage: test
   tags:
     - docker
-  image: docker-registry.linagora.com:5000/public-releases/openpaas-esn-test-helper:1.0.0
+  image: node:10-stretch
   services:
     - mongo:3.4
     - elasticsearch:2.4
@@ -14,7 +14,8 @@ test:
     - rabbitmq:3.6
   script:
     - npm i
-    - bower i --allow-root
+    - npm install -g grunt-cli
+    - node_modules/bower/bin/bower i --allow-root
     - grunt --chunk=1 --ci
 
 .deploy_dev:
@@ -26,7 +27,7 @@ test:
     name: dev
     url: https://dev.open-paas.org
   only:
-    - master
+    - master@linagora/lgs/openpaas/linagora.esn.dav.import
   script:
     - cd /srv/${CI_PROJECT_NAME}
     - git fetch --all
@@ -34,7 +35,7 @@ test:
     - npm install --production
     - npm update --production
     - npm prune
-    - bower install --production
-    - bower prune
+    - node_modules/bower/bin/bower install --production
+    - node_modules/bower/bin/bower prune
     - git checkout -- .
     - sudo /etc/init.d/rse.dev restart
