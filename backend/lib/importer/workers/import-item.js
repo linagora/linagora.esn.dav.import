@@ -1,20 +1,22 @@
-'use strict';
-
 const q = require('q');
-const handler = require('../handler');
-const { IMPORT_STATUS } = require('../../constants');
+const fileHandlerModule = require('../handler');
+const { IMPORT_STATUS, JOB_QUEUE } = require('../../constants');
 
 const TOKEN_TTL = 20000; // need to check later, 20s may not enough
 
-module.exports = function(dependencies) {
+module.exports = dependencies => {
   const coreUser = dependencies('user');
   const importItemModule = require('../../import-item')(dependencies);
 
   return {
-    run
+    name: JOB_QUEUE.IMPORT_ITEM,
+    handler: {
+      handle,
+      getTitle
+    }
   };
 
-  function run(job) {
+  function handle(job) {
     const { itemId } = job.data;
 
     return importItemModule.getById(itemId, { populations: { request: true } })
@@ -22,23 +24,27 @@ module.exports = function(dependencies) {
         const { rawData, request } = importItem;
         const { creator: userId, target, contentType } = request;
 
-        const fileHandler = handler.get(contentType);
+        const fileHandler = fileHandlerModule.get(contentType);
 
         if (!fileHandler) {
-          return q.reject(new Error(`No file handler for file type "${contentType}"`));
+          return Promise.reject(new Error(`No file handler for file type "${contentType}"`));
         }
 
         return q.denodeify(coreUser.get)(userId)
-          .then(createDavToken)
+          .then(_createDavToken)
           .then(({token, user}) => fileHandler.importItem(rawData, { target, token, user }))
           .then(
             () => importItemModule.updateById(itemId, { status: IMPORT_STATUS.succeed }),
-            err => importItemModule.updateById(itemId, { status: IMPORT_STATUS.failed }).then(() => q.reject(err))
+            err => importItemModule.updateById(itemId, { status: IMPORT_STATUS.failed }).then(() => Promise.reject(err))
           );
       });
   }
 
-  function createDavToken(user) {
+  function getTitle(jobData) {
+    return `Import DAV item ${jobData.itemId}`;
+  }
+
+  function _createDavToken(user) {
     return q.denodeify(coreUser.getNewToken)(user, TOKEN_TTL).then(data => ({token: data.token, user}));
   }
 };

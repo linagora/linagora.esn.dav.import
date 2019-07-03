@@ -1,17 +1,16 @@
-const q = require('q');
 const sinon = require('sinon');
 const mockery = require('mockery');
 const { expect } = require('chai');
 const { Readable } = require('stream');
 
-describe('The lib/importer/runner/import-request module', function() {
+describe('The lib/importer/workers/import-request module', function() {
   let importRequestModuleMock, importItemModuleMock, emailModuleMock, jobqueueMock, filestoreMock;
   let getModule;
 
   beforeEach(function() {
     jobqueueMock = {
       lib: {
-        initJobQueue: sinon.stub()
+        submitJob: sinon.stub()
       }
     };
     filestoreMock = {};
@@ -28,11 +27,11 @@ describe('The lib/importer/runner/import-request module', function() {
     mockery.registerMock('../../import-item', () => importItemModuleMock);
     mockery.registerMock('../../email', () => emailModuleMock);
 
-    getModule = () => require(this.moduleHelpers.backendPath + '/lib/importer/runner/import-request')(this.moduleHelpers.dependencies);
+    getModule = () => require(`${this.moduleHelpers.backendPath}/lib/importer/workers/import-request`)(this.moduleHelpers.dependencies);
   });
 
-  describe('The run fn', function() {
-    let job;
+  describe('The handle method', function() {
+    let job, getHandleMethod;
 
     beforeEach(function() {
       job = {
@@ -40,12 +39,14 @@ describe('The lib/importer/runner/import-request module', function() {
           requestId: 'requestId'
         }
       };
+
+      getHandleMethod = () => getModule().handler.handle;
     });
 
     it('should fail if it cannot fetch the import request', function(done) {
-      importRequestModuleMock.getById = sinon.stub().returns(q.reject(new Error('an_error')));
+      importRequestModuleMock.getById = sinon.stub().returns(Promise.reject(new Error('an_error')));
 
-      getModule().run(job).catch(err => {
+      getHandleMethod()(job).catch(err => {
         expect(err.message).to.equal('an_error');
         expect(importRequestModuleMock.getById).to.have.been.calledWith(job.data.requestId);
         done();
@@ -58,10 +59,10 @@ describe('The lib/importer/runner/import-request module', function() {
         fileId: 'fileId'
       };
 
-      importRequestModuleMock.getById = sinon.stub().returns(q(request));
+      importRequestModuleMock.getById = sinon.stub().returns(Promise.resolve(request));
       filestoreMock.get = sinon.spy((fileId, callback) => callback(new Error('an_error')));
 
-      getModule().run(job).catch(err => {
+      getHandleMethod()(job).catch(err => {
         expect(err.message).to.equal('an_error');
         expect(filestoreMock.get).to.have.been.calledWith(request.fileId, sinon.match.func);
         done();
@@ -74,10 +75,10 @@ describe('The lib/importer/runner/import-request module', function() {
         fileId: 'fileId'
       };
 
-      importRequestModuleMock.getById = sinon.stub().returns(q(request));
+      importRequestModuleMock.getById = sinon.stub().returns(Promise.resolve(request));
       filestoreMock.get = sinon.spy((fileId, callback) => callback(null, null));
 
-      getModule().run(job).catch(err => {
+      getHandleMethod()(job).catch(err => {
         expect(err.message).to.contain('File does not exist or deleted');
         done();
       });
@@ -92,17 +93,17 @@ describe('The lib/importer/runner/import-request module', function() {
         contentType: 'text/vcard'
       };
 
-      importRequestModuleMock.getById = sinon.stub().returns(q(request));
+      importRequestModuleMock.getById = sinon.stub().returns(Promise.resolve(request));
       filestoreMock.get = sinon.spy((fileId, callback) => callback(null, file));
 
-      getModule().run(job).catch(err => {
+      getHandleMethod()(job).catch(err => {
         expect(err.message).to.contain('No file handler for file type');
         done();
       });
     });
 
     describe('reading stream', function() {
-      let stream, file, handler, request, queue;
+      let stream, file, handler, request;
 
       beforeEach(function() {
         stream = new Readable();
@@ -122,20 +123,17 @@ describe('The lib/importer/runner/import-request module', function() {
 
         require(this.moduleHelpers.backendPath + '/lib/importer/handler').register(file.contentType, handler);
 
-        queue = {
-          create: sinon.stub().returns({ save: sinon.stub().returns(q()) })
-        };
-        jobqueueMock.lib.initJobQueue.returns(q(queue));
+        jobqueueMock.lib.submitJob.returns(Promise.resolve());
       });
 
       it('should read the stream using UTF8 encoding and resolve on end event', function(done) {
-        importRequestModuleMock.getById = sinon.stub().returns(q(request));
+        importRequestModuleMock.getById = sinon.stub().returns(Promise.resolve(request));
         filestoreMock.get = sinon.spy((fileId, callback) => {
           callback(null, file, stream);
         });
         stream.setEncoding = sinon.spy();
 
-        getModule().run(job).then(() => {
+        getHandleMethod()(job).then(() => {
           expect(stream.setEncoding).to.have.been.calledWith('utf8');
           done();
         })
@@ -146,12 +144,12 @@ describe('The lib/importer/runner/import-request module', function() {
       });
 
       it('should reject if error occurs while reading stream', function(done) {
-        importRequestModuleMock.getById = sinon.stub().returns(q(request));
+        importRequestModuleMock.getById = sinon.stub().returns(Promise.resolve(request));
         filestoreMock.get = sinon.spy((fileId, callback) => {
           callback(null, file, stream);
         });
 
-        getModule().run(job).catch(err => {
+        getHandleMethod()(job).catch(err => {
           expect(err.message).to.equal('an_error');
           done();
         });
@@ -164,7 +162,7 @@ describe('The lib/importer/runner/import-request module', function() {
         const chunk1 = 'line1\nline2\nline3';
         const chunk2 = 'line4\nline5';
 
-        importRequestModuleMock.getById = sinon.stub().returns(q(request));
+        importRequestModuleMock.getById = sinon.stub().returns(Promise.resolve(request));
         filestoreMock.get = sinon.spy((fileId, callback) => {
           callback(null, file, stream);
         });
@@ -178,11 +176,11 @@ describe('The lib/importer/runner/import-request module', function() {
           remainingLines: []
         });
 
-        importItemModuleMock.create = sinon.stub().returns(q({ id: 'itemId' }));
+        importItemModuleMock.create = sinon.stub().returns(Promise.resolve({ id: 'itemId' }));
 
-        getModule().run(job).then(() => {
+        getHandleMethod()(job).then(() => {
           expect(importItemModuleMock.create).to.have.been.callCount(4);
-          expect(queue.create).to.have.been.callCount(4);
+          expect(jobqueueMock.lib.submitJob).to.have.been.callCount(4);
           done();
         })
         .catch(err => done(err || 'should resolve'));
@@ -196,7 +194,7 @@ describe('The lib/importer/runner/import-request module', function() {
         const chunk1 = 'line1\nline2\nline3';
         const chunk2 = 'line4\nline5';
 
-        importRequestModuleMock.getById = sinon.stub().returns(q(request));
+        importRequestModuleMock.getById = sinon.stub().returns(Promise.resolve(request));
         filestoreMock.get = sinon.spy((fileId, callback) => {
           callback(null, file, stream);
         });
@@ -210,9 +208,9 @@ describe('The lib/importer/runner/import-request module', function() {
           remainingLines: []
         });
 
-        importItemModuleMock.create = sinon.stub().returns(q({ id: 'itemId' }));
+        importItemModuleMock.create = sinon.stub().returns(Promise.resolve({ id: 'itemId' }));
 
-        getModule().run(job).then(() => {
+        getHandleMethod()(job).then(() => {
           expect(handler.readLines.secondCall).to.have.been.calledWith(['line3line4', 'line5'], ['item2']);
           done();
         })
@@ -222,6 +220,14 @@ describe('The lib/importer/runner/import-request module', function() {
         setTimeout(() => stream.emit('data', chunk2), 0);
         setTimeout(() => stream.emit('end'), 0);
       });
+    });
+  });
+
+  describe('The getTitle method', function() {
+    it('should return a correct title from job data', function() {
+      const filename = 'foo.bar';
+
+      expect(getModule().handler.getTitle({ filename })).to.equal(`Import DAV items from file "${filename}"`);
     });
   });
 });
