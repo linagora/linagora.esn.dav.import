@@ -12,7 +12,7 @@ describe('The lib/importer/index module', function() {
 
     jobqueueMock = {
       lib: {
-        initJobQueue: sinon.stub()
+        submitJob: sinon.stub()
       }
     };
 
@@ -20,8 +20,8 @@ describe('The lib/importer/index module', function() {
 
     importRequestModuleMock = {};
     mockery.registerMock('../import-request', () => importRequestModuleMock);
-    mockery.registerMock('./runner/import-item', () => {});
-    mockery.registerMock('./runner/import-request', () => {});
+    mockery.registerMock('./workers/import-item', () => {});
+    mockery.registerMock('./workers/import-request', () => {});
 
     getModule = () => require(this.moduleHelpers.backendPath + '/lib/importer')(this.moduleHelpers.dependencies);
   });
@@ -58,19 +58,14 @@ describe('The lib/importer/index module', function() {
       };
       const target = '/addressbooks/bookHome/bookName.json';
       const user = { _id: 'userId' };
-      const saveSpy = sinon.spy();
-      const queue = {
-        create: sinon.stub().returns({ save: saveSpy })
-      };
 
-      jobqueueMock.lib.initJobQueue.returns(q(queue));
+      jobqueueMock.lib.submitJob.returns(Promise.resolve());
 
       getModule().importFromFile({ user, file, target }).then(() => {
-        expect(queue.create).to.have.been.calledWith(
+        expect(jobqueueMock.lib.submitJob).to.have.been.calledWith(
           CONSTANTS.JOB_QUEUE.IMPORT_REQUEST,
-          { requestId: request.id, title: sinon.match.string }
+          { requestId: request.id, filename: file.filename }
         );
-        expect(saveSpy).to.have.been.calledWith();
         done();
       })
       .catch(err => done(err || 'should resolve'));
