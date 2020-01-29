@@ -1,6 +1,6 @@
 {
   "name": "linagora.esn.dav.import",
-  "version": "1.6.2-dev",
+  "version": "1.6.2-rc1",
   "description": "Common stuffs used by Contact and Calendar to import contacts/events from VCF/ICS files to Sabre DAV ",
   "main": "index.js",
   "devDependencies": {
