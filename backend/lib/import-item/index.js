@@ -33,6 +33,6 @@ module.exports = function(dependencies) {
   }
 
   function updateById(itemId, modified) {
-    return DavImportItem.update({ _id: itemId }, { $set: modified }).exec();
+    return DavImportItem.updateOne({ _id: itemId }, { $set: modified }).exec();
   }
 };
