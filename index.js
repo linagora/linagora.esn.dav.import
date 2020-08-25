@@ -5,6 +5,7 @@ const Dependency = AwesomeModule.AwesomeModuleDependency;
 const glob = require('glob-all');
 const FRONTEND_JS_PATH = __dirname + '/frontend/app/';
 const AWESOME_MODULE_NAME = 'linagora.esn.dav.import';
+const cors = require('cors');
 
 const awesomeModule = new AwesomeModule(AWESOME_MODULE_NAME, {
   dependencies: [
@@ -38,6 +39,8 @@ const awesomeModule = new AwesomeModule(AWESOME_MODULE_NAME, {
     deploy: function(dependencies, callback) {
       // Register the webapp
       const app = require('./backend/webserver/application')(dependencies, this);
+
+      app.all('/api/*', cors({ origin: true, credentials: true }));
 
       // Register every exposed endpoints
       app.use('/api', this.api.module);
